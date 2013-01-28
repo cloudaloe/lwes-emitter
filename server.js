@@ -27,11 +27,12 @@ function bufferPlay()
 	return buf;
 }
 
-function sendUDP(message)
+function sendUDP(message, port, host)
 {
+	console.log("sending ", message);
 	var dgram = require('dgram');
 	var client = dgram.createSocket("udp4");
-	client.send(message, 0, 100, 1111, "v-cloudaloe-dev-01.local", function(err, bytes) {
+	client.send(message, 0, 100, port, host, function(err, bytes) {
 		console.log('an error occured in sending a UDP message.');
 	});
 	client.close();
@@ -41,10 +42,10 @@ function sendUDP(message)
 
 function marshal_LWES_ShortString()
 {
-	this function TBD to make code nicer wherever it writes an LWES string to buffer
+	//this function TBD to make code nicer wherever it writes an LWES string to buffer
 }
 
-function buildEvent(type, numOfAttibutes, encoding)
+function buildEvent(type, numOfAttibutes)
 {
 	//
 	// Serializes the event into a buffer for transmission
@@ -59,7 +60,6 @@ function buildEvent(type, numOfAttibutes, encoding)
 	
 	console.log("event type: ", type);
 	console.log("event number of attributes: ", numOfAttibutes);	
-	console.log("encoding: ", encoding);		
 
 	var offset = 0; // tracks the next position in the buffer to write to
 	var buf = new Buffer(100); // for now
@@ -73,13 +73,29 @@ function buildEvent(type, numOfAttibutes, encoding)
 	buf.writeUInt16LE(numOfAttibutes, offset); 		// push as little endian
 	offset += 2; 									// cause UInt16 is two bytes
 
-	// push encoding
+	//
+	// Push string encoding for the entire event.
+	// It was implied this is not mandatory for the receiving party to rely on this value.
+	// The encoding value should be a constant occupying two bytes. 
+	// It's values are not documented, but all examples seem to use the number value 1.
+	//
 	var ENC = "enc";
+	var LWES_INT_16_TOKEN   = 0x02; // from lwes_types.c
+	var encoding = 1; // from lwes_types.c
+	
 	buf.writeUInt8(ENC.length, offset);
 	offset++;
 	offset += buf.write(ENC, offset);
 	
+	buf.writeUInt8(LWES_INT_16_TOKEN, offset);
+	offset++;
+	
+	buf.writeUInt16LE(1, offset);
+	offset += 2; 									// cause UInt16 is two bytes
+	
 	console.log(buf);
+	
+	return buf;
 }
 
-buildEvent("EventTypeA", 1);
+sendUDP(buildEvent("EventTypeA", 1), 1111, "v-cloudaloe-dev-01.local");
