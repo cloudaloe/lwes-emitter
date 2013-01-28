@@ -27,13 +27,15 @@ function bufferPlay()
 	return buf;
 }
 
-var message = bufferPlay();
+function sendUDP(message)
+{
+	var dgram = require('dgram');
+	var client = dgram.createSocket("udp4");
+	client.send(message, 0, 100, 41234, "localhost", function(err, bytes) {
+		console.log('an error occured in sending a UDP message.');
+	});
+	client.close();
+}
 
-var dgram = require('dgram');
-var client = dgram.createSocket("udp4");
-client.send(message, 0, 100, 41234, "localhost", function(err, bytes) {
-	console.log('an error occured in sending a UDP message.');
-});
-client.close();
-
+sendUDP(bufferPlay());
 
