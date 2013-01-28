@@ -32,6 +32,7 @@ function sendUDP(message, port, host)
 	console.log("sending ", message);
 	var dgram = require('dgram');
 	var client = dgram.createSocket("udp4");
+	//client.setBroadcast(false);
 	client.send(message, 0, 100, port, host, function(err, bytes) {
 		console.log('an error occured in sending a UDP message.');
 	});
@@ -98,4 +99,4 @@ function buildEvent(type, numOfAttibutes)
 	return buf;
 }
 
-sendUDP(buildEvent("EventTypeA", 1), 1111, "v-cloudaloe-dev-01.local");
+sendUDP(buildEvent("EventTypeA", 1), 1111, "localhost");
