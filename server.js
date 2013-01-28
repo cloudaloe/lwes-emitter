@@ -31,11 +31,55 @@ function sendUDP(message)
 {
 	var dgram = require('dgram');
 	var client = dgram.createSocket("udp4");
-	client.send(message, 0, 100, 41234, "localhost", function(err, bytes) {
+	client.send(message, 0, 100, 1111, "v-cloudaloe-dev-01.local", function(err, bytes) {
 		console.log('an error occured in sending a UDP message.');
 	});
 	client.close();
 }
 
-sendUDP(bufferPlay());
+//sendUDP(bufferPlay());
 
+function marshal_LWES_ShortString()
+{
+	this function TBD to make code nicer wherever it writes an LWES string to buffer
+}
+
+function buildEvent(type, numOfAttibutes, encoding)
+{
+	//
+	// Serializes the event into a buffer for transmission
+	// Gory details: 	assumes the receiving side will handle integers as little endian.
+	//					The C implementation acts differently, it maintains the OS endian,
+	//					but node.js doesn't know the OS endian and only exposes an API
+	//					that requires the code to pick between the two endian types.
+	//
+	// TODO: avoid pushing empty values, and values that exceed their alloted size
+	//		 add endian type selection as configuration
+	//
+	
+	console.log("event type: ", type);
+	console.log("event number of attributes: ", numOfAttibutes);	
+	console.log("encoding: ", encoding);		
+
+	var offset = 0; // tracks the next position in the buffer to write to
+	var buf = new Buffer(100); // for now
+	
+	// push the event type | corresponds to line 335 in lwes_event.c
+	buf.writeUInt8(type.length, offset);
+	offset++;
+	offset += buf.write(type, offset);
+
+	// push the number of attributes | corresponds to line 341 in lwes_event.c
+	buf.writeUInt16LE(numOfAttibutes, offset); 		// push as little endian
+	offset += 2; 									// cause UInt16 is two bytes
+
+	// push encoding
+	var ENC = "enc";
+	buf.writeUInt8(ENC.length, offset);
+	offset++;
+	offset += buf.write(ENC, offset);
+	
+	console.log(buf);
+}
+
+buildEvent("EventTypeA", 1);
